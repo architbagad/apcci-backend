@@ -1,18 +1,12 @@
-import argon2 from "argon2"
+import { Context } from "hono";
+import bcrypt from 'bcryptjs';
 
 export const hashPassword = async (password: string, secret: string): Promise<string> => {
-    return await argon2.hash(password, {
-        type: argon2.argon2id,
-        memoryCost: 65536,
-        timeCost: 4,
-        parallelism: 1,
-        hashLength: 32,
-        secret: Buffer.from(secret),
-    });
-}
+    const salt = await bcrypt.genSalt(10);
+    const combined = password + secret;
+    return await bcrypt.hash(combined, salt);
+}   
 
-export const verifyPassword = async (password: string, hashed: string) => {
-    return await argon2.verify(hashed, password, {
-        secret: Buffer.from(process.env.ARGON2_SECRET!)
-    });
+export const verifyPassword = async (password: string, hashed: string): Promise<boolean> => {
+    return await bcrypt.compare(password, hashed);
 }

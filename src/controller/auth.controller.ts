@@ -1,5 +1,9 @@
-import { hashPassword } from "../utils/hash";
+import { PrismaClient } from "@prisma/client/edge";
+import { hashPassword, verifyPassword } from "../utils/hash";
 import { createToken,verifyToken } from "../utils/token";
+import { withAccelerate } from "@prisma/extension-accelerate";
+import { Context } from "hono";
+import bcrypt from "bcryptjs";
 
 class Auth {
     private static instance: Auth;
@@ -13,15 +17,19 @@ class Auth {
     
     constructor() {}
 
-    public async login(username: string, password: string): Promise<any> {
+    public async login(c: Context,username: string, password: string): Promise<any> {
+
+        const prisma = new PrismaClient({
+            datasourceUrl : c.env.DATABASE_URL
+          }).$extends(withAccelerate())
         
-        const user = await prisma?.user.findUnique({
+        const user = await prisma.user.findUnique({
             where: { username },
         });
 
         if (!user) throw new Error("User not found");
 
-        const isPasswordValid = await hashPassword(password, process.env.ARGON2_SECRET!) === user.password;
+        const isPasswordValid = await bcrypt.compare(password, user.password);
 
         if (!isPasswordValid) throw new Error("Invalid password");
 
@@ -30,14 +38,8 @@ class Auth {
             username: user.username,
         }, process.env.JWT_SECRET!);
 
-        const refreshToken = await createToken({
-            userId: user.id,
-            username: user.username,
-        }, process.env.JWT_REFRESH_SECRET!);
-
         return {
-            accessToken,
-            refreshToken,
+            token : accessToken,
             user: {
                 id: user.id,
                 username: user.username,
@@ -49,12 +51,16 @@ class Auth {
     
     }
 
-    public async register(username: string, password: string): Promise<string> {
+    public async register(c: Context,username: string, password: string): Promise<string> {
         
+        const prisma = new PrismaClient({
+            datasourceUrl : c.env.DATABASE_URL
+        }).$extends(withAccelerate())
+
         const user = await prisma?.user.create({
             data: {
                 username,
-                password : await hashPassword(password,process.env.ARGON2_SECRET!),
+                password : await bcrypt.hash(password, 10), // Hashing password with secret
             },
         })
         if (!user) throw new Error("User creation failed");
@@ -62,7 +68,11 @@ class Auth {
         return user.id;
     }
 
-    public async profile(header : string): Promise<any> {
+    public async profile(c: Context,header : string): Promise<any> {
+        const prisma = new PrismaClient({
+            datasourceUrl : c.env.DATABASE_URL
+        }).$extends(withAccelerate())
+
         const token = header.split(' ')[1];
         if (!token) throw new Error("No token provided");
 
