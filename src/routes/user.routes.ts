@@ -14,10 +14,14 @@ userRouter.post("/register", async (c : Context) => {
     
     const { username, password } = await c.req.json();
 
-    const id = await authController.register(c,username, password)
+    const payload = await authController.register(c,username, password)
 
     return c.json({
-        id,
+        user : {
+            id : payload.id,
+            role : payload.role,
+        },
+        token : payload.token,
         success : true,
         message : "User registered successfully"
     });
@@ -41,6 +45,22 @@ userRouter.post("/login", async (c : Context) => {
         message: "Login successful"
     });
 });
+
+userRouter.get("/my-bins", async (c : Context) => {
+    const token = c.req.header("Authorization")?.replace("Bearer ", "");
+    
+    if (!token) {
+        return c.json({ success: false, message: "Token is required" }, 400);
+    }
+
+    const allotments = await authController.getUserAllotments(c,token);
+
+    return c.json({
+        allotments,
+        success : true,
+        message : "fetched allotments!"
+    })
+})
 
 userRouter.post("/logout", async (c : Context) => {
     const token = c.req.header("Authorization")?.replace("Bearer ", "");
