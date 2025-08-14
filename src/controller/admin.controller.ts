@@ -1,6 +1,7 @@
 import { Allotment, PrismaClient, ScanBin, User } from "@prisma/client/edge";
 import { withAccelerate } from "@prisma/extension-accelerate";
 import { Context } from "hono";
+import { hashPassword } from "../utils/hash";
 
 class Admin {
     private static instance: Admin | null = null;
@@ -13,6 +14,24 @@ class Admin {
     }
 
     private constructor() {}
+
+    public async addUser(c : Context, name : string, username : string,password : string) : Promise<boolean> {
+        const prisma = new PrismaClient({
+            datasourceUrl: c.env.DATABASE_URL
+        }).$extends(withAccelerate());
+        
+        const pass = await hashPassword(password, c.env.ARGON2_SECRET)
+
+        await prisma.user.create({
+            data : {
+                name,
+                username,
+                password : pass
+            }
+        })
+
+        return true;
+    }
 
     public async getAllUsers(c: Context): Promise<User[]> {
         const prisma = new PrismaClient({
