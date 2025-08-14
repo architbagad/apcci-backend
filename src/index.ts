@@ -1,9 +1,10 @@
-import { Hono } from 'hono'
-import { PrismaClient } from '@prisma/client/edge'
+import { Hono } from 'hono';
+import { PrismaClient } from '@prisma/client/edge';
 import { withAccelerate } from '@prisma/extension-accelerate';
 import userRouter from './routes/user.routes';
-import { swaggerConfig } from './config';
-import { swaggerUI } from '@hono/swagger-ui'
+import adminRouter from './routes/admin.routes';
+import { swaggerUI } from '@hono/swagger-ui';
+import openApiSpec from './swagger.json';
 
 const app = new Hono<{
   Bindings: {
@@ -12,43 +13,42 @@ const app = new Hono<{
     JWT_SECRET: string;
     NPM_PACKAGE_VERSION: string;
   }
-}>()
+}>();
 
 app.onError((error, c) => {
-  console.error(`[${new Date().toISOString()}] Error:`, error)
+  console.error(`[${new Date().toISOString()}] Error:`, error);
   return c.json({
     error: 'Internal Server Error',
     message: error.message,
     path: c.req.path,
     method: c.req.method
-  }, 500)
-})
+  }, 500);
+});
 
-app.use('/docs', swaggerUI({ urls: [{ url: '/swagger.json', name: 'API Docs' }], spec: swaggerConfig }))
+app.get('/swagger.json', (c) => c.json(openApiSpec));
+
+app.use('/docs', swaggerUI({ url: '/swagger.json' }));
 
 app.get('/health', async (c) => {
-  
   const prisma = new PrismaClient({
-    datasourceUrl : c.env.DATABASE_URL
-  }).$extends(withAccelerate())
+    datasourceUrl: c.env.DATABASE_URL
+  }).$extends(withAccelerate());
 
-  if (prisma) await prisma.$queryRaw`SELECT 1`
-  
-  else throw new Error('Database connection is not established')
-  
-  return c.json({ 
-    status: 'ok', 
+  if (prisma) await prisma.$queryRaw`SELECT 1`;
+  else throw new Error('Database connection is not established');
+
+  return c.json({
+    status: 'ok',
     timestamp: new Date().toISOString(),
     message: 'Server is running and database connection is healthy',
     database: prisma ? 'connected' : 'not connected',
-    version: c.env.NPM_PACKAGE_VERSION || 'unknown' 
-  })
-})
+    version: c.env.NPM_PACKAGE_VERSION || 'unknown'
+  });
+});
 
-app.get('/', async (c) => {
-  return c.text('Hello Hono!')
-})
+app.get('/', (c) => c.text('Hello Hono!'));
 
-app.route("/user", userRouter);
+app.route('/user', userRouter);
+app.route('/admin', adminRouter);
 
-export default app
+export default app;

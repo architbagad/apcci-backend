@@ -1,0 +1,509 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "APCCI BACKEND API",
+    "version": "1.0.0",
+    "description": "API for managing users, bins, allotments, and authentication"
+  },
+  "servers": [{ "url": "http://localhost:8000" }],
+  "paths": {
+    "/user/register": {
+      "post": {
+        "summary": "Register a new user",
+        "tags": ["User"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": { "type": "string" },
+                  "password": { "type": "string" }
+                },
+                "required": ["username", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "User registered successfully" },
+          "400": { "description": "Bad request, missing fields" },
+          "500": { "description": "Internal server error" }
+        },
+        "security": [{ "BearerAuth": [] }]
+      }
+    },
+    "/user/login": {
+      "post": {
+        "summary": "User login",
+        "tags": ["User"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": { "type": "string" },
+                  "password": { "type": "string" }
+                },
+                "required": ["username", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful, returns user data and token"
+          },
+          "401": { "description": "Invalid username or password" },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    },
+    "/user/logout": {
+      "post": {
+        "summary": "Logout a user",
+        "tags": ["User"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "token": { "type": "string" }
+                },
+                "required": ["token"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Logout successful" },
+          "400": { "description": "Token is required" }
+        }
+      }
+    },
+
+    "/admin/users": {
+      "get": {
+        "summary": "Get all users",
+        "tags": ["Admin"],
+        "responses": {
+          "200": {
+            "description": "List of all users",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/User"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/user/{id}": {
+      "get": {
+        "summary": "Get user by ID",
+        "tags": ["Admin"],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/UserId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a user",
+        "tags": ["Admin"],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/UserId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User updated successfully"
+          },
+          "404": {
+            "description": "User not found or update failed"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a user",
+        "tags": ["Admin"],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/UserId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User deleted successfully"
+          }
+        }
+      }
+    },
+    "/admin/allot-bin": {
+      "post": {
+        "summary": "Allot a bin to a user",
+        "tags": ["Allotments"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["userId", "binId"],
+                "properties": {
+                  "userId": {
+                    "type": "string"
+                  },
+                  "binId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Bin allotted to user successfully"
+          },
+          "400": {
+            "description": "Missing parameters"
+          }
+        }
+      }
+    },
+    "/admin/remove-bin": {
+      "delete": {
+        "summary": "Remove a bin from a user",
+        "tags": ["Allotments"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["userId", "binId"],
+                "properties": {
+                  "userId": {
+                    "type": "string"
+                  },
+                  "binId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Bin removed successfully"
+          },
+          "400": {
+            "description": "Missing parameters"
+          }
+        }
+      }
+    },
+    "/admin/bins": {
+      "get": {
+        "summary": "Get all bins",
+        "tags": ["Bins"],
+        "responses": {
+          "200": {
+            "description": "List of bins",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Bin"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/bin": {
+      "post": {
+        "summary": "Create a new bin",
+        "tags": ["Bins"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["location", "tag"],
+                "properties": {
+                  "location": {
+                    "type": "string"
+                  },
+                  "tag": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Bin created successfully"
+          },
+          "400": {
+            "description": "Missing parameters"
+          }
+        }
+      }
+    },
+    "/admin/bin/{id}": {
+      "get": {
+        "summary": "Get bin by ID",
+        "tags": ["Bins"],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/BinId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Bin found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Bin"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Bin not found"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update bin",
+        "tags": ["Bins"],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/BinId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BinUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Bin updated successfully"
+          },
+          "404": {
+            "description": "Bin not found or update failed"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete bin",
+        "tags": ["Bins"],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/BinId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Bin deleted successfully"
+          },
+          "500": {
+            "description": "Failed to delete bin"
+          }
+        }
+      }
+    },
+    "/admin/allotments": {
+      "get": {
+        "summary": "Get all allotments",
+        "tags": ["Allotments"],
+        "responses": {
+          "200": {
+            "description": "List of allotments",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Allotment"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/allotment/{id}": {
+      "get": {
+        "summary": "Get allotment by ID",
+        "tags": ["Allotments"],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/AllotmentId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Allotment found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Allotment"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Allotment not found"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete allotment",
+        "tags": ["Allotments"],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/AllotmentId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Allotment deleted successfully"
+          },
+          "500": {
+            "description": "Failed to delete allotment"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "parameters": {
+      "UserId": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "schema": { "type": "string" },
+        "description": "User ID"
+      },
+      "BinId": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "schema": { "type": "string" },
+        "description": "Bin ID"
+      },
+      "AllotmentId": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "schema": { "type": "string" },
+        "description": "Allotment ID"
+      }
+    },
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "email": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "UserUpdate": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "email": { "type": "string" }
+        }
+      },
+      "Bin": {
+        "type": "object",
+        "properties": {
+          "binId": { "type": "string" },
+          "location": { "type": "string" },
+          "tag": { "type": "string" }
+        }
+      },
+      "BinUpdate": {
+        "type": "object",
+        "properties": {
+          "location": { "type": "string" },
+          "tag": { "type": "string" }
+        }
+      },
+      "Allotment": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "userId": { "type": "string" },
+          "binId": { "type": "string" },
+          "user": { "$ref": "#/components/schemas/User" },
+          "scanBin": { "$ref": "#/components/schemas/Bin" }
+        }
+      }
+    }
+  }
+}

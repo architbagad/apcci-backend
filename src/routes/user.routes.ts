@@ -10,33 +10,6 @@ const userRouter = new Hono<{
     }
 }>();
 
-/**
- * @swagger
- * /user/register:
- *   post:
- *     summary: Register a new user
- *     tags: [User]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               username:
- *                 type: string
- *               password:
- *                 type: string
- *     responses:
- *       200:
- *         description: User registered successfully
- *       400:
- *         description: Bad request, missing fields
- *       500:
- *         description: Internal server error
- *     security:
- *       - BearerAuth: []
- */
 userRouter.post("/register", async (c : Context) => {
     
     const { username, password } = await c.req.json();
@@ -50,30 +23,6 @@ userRouter.post("/register", async (c : Context) => {
     });
 });
 
-/** * @swagger
- * /user/login:
- *   post:
- *     summary: User login
- *     tags: [User]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               username:
- *                 type: string
- *               password:
- *                 type: string
- *     responses:
- *       200:
- *         description: Login successful, returns user data and token
- *       401:
- *         description: Invalid username or password
- *       500:
- *         description: Internal server error
- */
 userRouter.post("/login", async (c : Context) => {
     const { username, password } = await c.req.json();
 
@@ -93,17 +42,6 @@ userRouter.post("/login", async (c : Context) => {
     });
 });
 
-/** * @swagger
- * /user/profile:
- *   get:
- *     summary: Get user profile
- *     tags: [User]
- *     responses:
- *       200:
- *         description: Returns user profile data
- *       401:
- *         description: Unauthorized, token required
- */
 userRouter.post("/logout", async (c : Context) => {
     const token = c.req.header("Authorization")?.replace("Bearer ", "");
     

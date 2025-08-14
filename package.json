@@ -12,11 +12,14 @@
     "@prisma/client": "^6.13.0",
     "@prisma/extension-accelerate": "^2.0.2",
     "@types/morgan": "^1.9.10",
+    "@types/yamljs": "^0.2.34",
     "argon2": "^0.43.1",
     "bcryptjs": "^3.0.2",
     "drizzle-orm": "^0.44.4",
     "hono": "^4.8.12",
-    "morgan": "^1.10.1"
+    "morgan": "^1.10.1",
+    "yaml": "^2.8.1",
+    "yamljs": "^0.3.0"
   },
   "devDependencies": {
     "@types/node": "^24.1.0",

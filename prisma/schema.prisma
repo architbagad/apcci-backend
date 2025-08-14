@@ -15,39 +15,42 @@ enum Role {
 model User {
   id        String   @id @default(cuid())
   name      String?
-  username  String  @unique
-  phone     String? @unique
+  username  String   @unique
+  phone     String?  @unique
   password  String
   role      Role     @default(USER)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   Allotment Allotment[]
+
   @@index([username])
   @@index([phone])
 }
 
-model Allotment  {
+model Allotment {
   id        String   @id @default(cuid())
   userId    String
   user      User     @relation(fields: [userId], references: [id])
-  scanBin ScanBin @relation(fields: [binId], references: [id])
+  scanBin   ScanBin  @relation(fields: [binId], references: [id])
   binId     String
   location  String?
+  routeId   String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  Route     Route    @relation(fields: [routeId], references: [id])
 
   @@index([userId])
   @@index([binId])
 }
 
 model ScanBin {
-  id       String   @id @default(cuid())
-  binId       String @unique
-  location String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  tag String @unique
+  id         String      @id @default(cuid())
+  binId      String      @unique
+  location   String?
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  tag        String      @unique
   allotments Allotment[]
 
   @@index([binId])
@@ -55,23 +58,25 @@ model ScanBin {
 }
 
 model Route {
-  id String @id @default(cuid())
-  name String
-  description String?
+  id            String   @id @default(cuid())
+  name          String
+  description   String?
   startLocation String
-  endLocation String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  endLocation   String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  Allotments Allotment[]
 
   NFC NFC[]
 }
 
 model NFC {
-  id String @id @default(cuid())
-  nfcId String @unique
-  routeId String
-  route Route @relation(fields: [routeId], references: [id])
-  location String
+  id        String   @id @default(cuid())
+  nfcId     String   @unique
+  routeId   String
+  route     Route    @relation(fields: [routeId], references: [id])
+  location  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

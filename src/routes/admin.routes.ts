@@ -10,12 +10,10 @@ const adminRouter = new Hono<{
   }
 }>();
 
-
 adminRouter.get("/users", async (c) => {
   const users = await adminController.getAllUsers(c);
   return c.json(users);
 });
-
 
 adminRouter.delete("/user/:id", async (c) => {
   const userId = c.req.param("id");
@@ -48,13 +46,13 @@ adminRouter.get("/user/:id", async (c) => {
 });
 
 adminRouter.post("/allot-bin", async (c) => {
-  const { userId, binId } = await c.req.json();
+  const { userId, binId,routeId } = await c.req.json();
   
-  if (!userId || !binId) {
+  if (!userId || !binId || !routeId) {
     return c.json({ success: false, message: "User ID and Bin ID are required" }, 400);
   }
 
-  const success = await adminController.allotBinToUser(c, userId, binId);
+  const success = await adminController.allotBinToUser(c, userId, binId,routeId);
   
   if (!success) {
     return c.json({ success: false, message: "Failed to allot bin to user" }, 500);

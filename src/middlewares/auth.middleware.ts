@@ -4,30 +4,30 @@ import { Context } from "hono";
 import { getUserIdFromToken } from "../utils/token";
 
 export const authMiddleware = async (c: Context, next: () => Promise<void>) => {
-    const prisma = new PrismaClient({
-                datasourceUrl : c.env.DATABASE_URL
-            }).$extends(withAccelerate())
-            
-    const token = c.req.header("Authorization")?.replace("Bearer ", "");
-    
-    if (!token) {
-        return c.json({ success: false, message: "Token is required" }, 401);
-    }
+  const prisma = new PrismaClient({
+    datasourceUrl: c.env.DATABASE_URL,
+  }).$extends(withAccelerate());
 
-    const username = await getUserIdFromToken(token);
+  const token = c.req.header("Authorization")?.replace("Bearer ", "");
 
-    if (!username) {
-        return c.json({ success: false, message: "Invalid token" }, 401);
-    }
+  if (!token) {
+    return c.json({ success: false, message: "Token is required" }, 401);
+  }
 
-    const user = await prisma.user.findUnique({
-        where: { id: username },
-    });
+  const username = await getUserIdFromToken(token);
 
-    if (!user) {
-        return c.json({ success: false, message: "User not found" }, 404);
-    }
+  if (!username) {
+    return c.json({ success: false, message: "Invalid token" }, 401);
+  }
 
-        c.set("user", user); // Store user in context for later use
-        await next();
-}
+  const user = await prisma.user.findUnique({
+    where: { id: username },
+  });
+
+  if (!user) {
+    return c.json({ success: false, message: "User not found" }, 404);
+  }
+
+  c.set("user", user);
+  await next();
+};

@@ -47,7 +47,7 @@ class Admin {
         return updatedUser.id ? updatedUser : null;
     }
 
-    public async allotBinToUser(c: Context, userId: string, binId: string): Promise<boolean> {
+    public async allotBinToUser(c: Context, userId: string, binId: string,routeId : string): Promise<boolean> {
         const prisma = new PrismaClient({
             datasourceUrl: c.env.DATABASE_URL
         }).$extends(withAccelerate());
@@ -56,6 +56,7 @@ class Admin {
             data: {
                 userId,
                 binId,
+                routeId
             },
         });
 
